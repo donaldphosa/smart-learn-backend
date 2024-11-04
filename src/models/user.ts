@@ -1,0 +1,46 @@
+
+import mongoose, { Document, Schema } from 'mongoose';
+
+export interface User extends Document {
+    username: string;
+    password: string;
+    email: string;
+    salt:string;
+    name:string;
+    surname:string;
+    DoB?:string;
+    enrolledCourses?:string[];
+    idNumber?:string;
+}
+
+const userSchema = new Schema<User>({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    salt:{type:String,required:true},
+    name:{type:String,required:true},
+    surname:{type:String,required:true},
+    DoB:String,
+    enrolledCourses:{type: [String]},
+    idNumber:{type:String}
+},
+{ timestamps: true },
+);
+
+
+userSchema.methods.toJSON = function () {
+    const user = this;
+    const userObject = user.toObject();
+
+    delete userObject.password; 
+    delete userObject.__v; 
+    delete userObject.salt;
+    delete userObject._id;
+    delete userObject.createdAt;
+    delete userObject.updatedAt;
+
+    return userObject;
+};
+
+const UserModel = mongoose.model<User>('User', userSchema);
+export default UserModel;
