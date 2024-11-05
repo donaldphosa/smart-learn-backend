@@ -3,6 +3,7 @@ import { LoginDTO, SignupDTO, UpdateUserDTO, UserDTO } from "../dto/user.tdo";
 import UserModel from "../models/user";
 import { comparePasswords, generateSalt, hashPassword } from "../utility/passwordutility";
 import { generateToken } from "../utility/jwtUtil";
+import { log } from "console";
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -119,5 +120,32 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 
     } catch (err) {
         res.status(500).json({ message: 'An error occurred while updating the user.', success: false, error: err });
+    }
+}
+
+
+// finish it tomorrow with a fresh mind
+export const purchaseCourse = async (req: Request, res: Response, next: NextFunction) =>{
+
+    try {
+        const courseId = req.params.id;
+        const user = req.user?.user;
+
+        log(user);
+
+        if(!courseId){
+            return res.status(400).json({message:"could not purchase the course",success:false})
+        }
+
+        if (user.coursesEnrolled.includes(courseId)) {
+            return res.status(400).json({
+              success: false,
+              message: "User is already enrolled in this course."
+            });
+
+        }
+        
+    } catch (error) {
+        
     }
 }

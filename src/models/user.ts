@@ -1,5 +1,7 @@
 
 import mongoose, { Document, Schema } from 'mongoose';
+import course from './course';
+import { courseDTO } from '../dto/course.dto';
 
 export interface User extends Document {
     username: string;
@@ -9,7 +11,7 @@ export interface User extends Document {
     name:string;
     surname:string;
     DoB?:string;
-    enrolledCourses?:string[];
+    enrolledCourses?:courseDTO[];
     idNumber?:string;
 }
 
@@ -21,7 +23,7 @@ const userSchema = new Schema<User>({
     name:{type:String,required:true},
     surname:{type:String,required:true},
     DoB:String,
-    enrolledCourses:{type: [String]},
+    enrolledCourses:{type: [course.schema], required:false},
     idNumber:{type:String}
 },
 { timestamps: true },
@@ -35,7 +37,6 @@ userSchema.methods.toJSON = function () {
     delete userObject.password; 
     delete userObject.__v; 
     delete userObject.salt;
-    delete userObject._id;
     delete userObject.createdAt;
     delete userObject.updatedAt;
 

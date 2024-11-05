@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import userRouter from './routes/user';
+import courseRouter from './routes/course';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 declare global {
     namespace Express {
         interface Request {
-            user?: any; // You can define this as a specific type if you have a User interface
+            user?: any;
         }
     }
 }
@@ -25,7 +26,8 @@ connectDb();
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
-app.use('/users',userRouter)
+app.use('/users',userRouter);
+app.use('/courses',courseRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
