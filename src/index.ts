@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import userRouter from './routes/user';
 import courseRouter from './routes/course';
+import videoRouter from './routes/video';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,6 +29,7 @@ app.use(express.urlencoded({extended:true}));
 
 app.use('/users',userRouter);
 app.use('/courses',courseRouter);
+app.use('/videos',videoRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

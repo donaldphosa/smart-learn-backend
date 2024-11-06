@@ -9,6 +9,6 @@ const userRouter = Router();
 userRouter.post('/signup',signup as (req:Request,res:Response, next:NextFunction)=> Promise<void>);
 userRouter.post("/login", login as (req:Request,res:Response, next:NextFunction)=> Promise<void>);
 userRouter.put("/update", authenticate as (req:Request,res:Response, next:NextFunction)=> Promise<void> ,updateUser as (req:Request,res:Response, next:NextFunction)=> Promise<void>);
-userRouter.post("/purchase", authenticate as  (req:Request,res:Response, next:NextFunction)=> Promise<void> ,purchaseCourse as any)
+userRouter.post("/purchase/:id", authenticate as  (req:Request,res:Response, next:NextFunction)=> Promise<void> ,purchaseCourse as any)
 
 export default userRouter;

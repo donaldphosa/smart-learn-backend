@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import course from "../models/course";
 import { courseDTO, updateCourseDTO } from "../dto/course.dto";
+import UserModel from "../models/user";
 
 
 export const getAllCourses = async (req: Request, res: Response, next: NextFunction) => {
@@ -140,3 +141,31 @@ export const updateCourse = async (req: Request, res: Response, next: NextFuncti
         return res.status(500).json({message:"error while updating the course",success:false,error:err})
     }
   };
+
+
+export const  deleteCourse = async (req: Request, res: Response, next: NextFunction) => {
+
+    try{
+
+        const courseId =  req.params.id;
+        if(!courseId){
+            return  res.status(400).json({success:false,message:"Course id is required"});
+        }
+
+        const deletedCourse = await course.findByIdAndDelete(courseId);
+
+        if (!deletedCourse) {
+            return res.status(404).json({ success: false, message: "Course not found" });
+        }
+
+        await UserModel.updateMany(
+            { enrolledCourses: courseId }, 
+            { $pull: { enrolledCourses: courseId } } 
+        );
+
+        return res.status(201).json({message:"course deleted successfully",course:deletedCourse});
+
+    }catch(error){
+        return  res.status(500).json({message:"error deleting course",success:false,error:error});
+    }
+}

@@ -7,7 +7,7 @@ interface Course extends Document{
     courseDescription:string;
     courseDuration: number;
     coursePrice: number;
-    courseVideos? : CourseVideoDTO[];
+    courseVideos? :  mongoose.Types.ObjectId[];
     category:string;
     author?:string;
 }
@@ -19,7 +19,7 @@ const  courseSchema = new Schema<Course>({
     courseDescription:{type:String,required:true},
     courseDuration:{type:Number,required:true},
     coursePrice:{type:Number,required:true},
-    courseVideos:{type:[CourseVideo.schema],required:false},
+    courseVideos:{type:[{ type: mongoose.Types.ObjectId, ref: 'CourseVideo' }]},
     category:{type:String,required:true},
     author:{type:String,required:false}
 },{timestamps:true})

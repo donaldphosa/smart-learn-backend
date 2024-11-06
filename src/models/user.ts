@@ -7,27 +7,25 @@ export interface User extends Document {
     username: string;
     password: string;
     email: string;
-    salt:string;
-    name:string;
-    surname:string;
-    DoB?:string;
-    enrolledCourses?:courseDTO[];
-    idNumber?:string;
+    salt: string;
+    name: string;
+    surname: string;
+    DoB?: string;
+    enrolledCourses?: mongoose.Types.ObjectId[]; // Array of ObjectIds referencing Course
+    idNumber?: string;
 }
 
 const userSchema = new Schema<User>({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    salt:{type:String,required:true},
-    name:{type:String,required:true},
-    surname:{type:String,required:true},
-    DoB:String,
-    enrolledCourses:{type: [course.schema], required:false},
-    idNumber:{type:String}
-},
-{ timestamps: true },
-);
+    salt: { type: String, required: true },
+    name: { type: String, required: true },
+    surname: { type: String, required: true },
+    DoB: { type: String },
+    enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }], // Reference to Course model
+    idNumber: { type: String }
+}, { timestamps: true });
 
 
 userSchema.methods.toJSON = function () {

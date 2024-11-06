@@ -4,6 +4,7 @@ import UserModel from "../models/user";
 import { comparePasswords, generateSalt, hashPassword } from "../utility/passwordutility";
 import { generateToken } from "../utility/jwtUtil";
 import { log } from "console";
+import { Types } from 'mongoose';
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -103,7 +104,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
         const email = req.user?.user?.email;
 
         if (!email) {
-            return res.status(400).json({ message: 'User email not found in request.', success: false });
+            return res.status(400).json({ message: 'User not found in request.', success: false });
         }
 
         const updatedUser = await UserModel.findOneAndUpdate(
@@ -123,29 +124,38 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
     }
 }
 
-
-// finish it tomorrow with a fresh mind
-export const purchaseCourse = async (req: Request, res: Response, next: NextFunction) =>{
-
+export const purchaseCourse = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const courseId = req.params.id;
-        const user = req.user?.user;
+        const email = req.user?.user.email;
 
-        log(user);
-
-        if(!courseId){
-            return res.status(400).json({message:"could not purchase the course",success:false})
+        const user = await UserModel.findOne({ email: email });
+        if (!user) {
+            return res.status(400).json({ success: false, message: "User not found." });
         }
 
-        if (user.coursesEnrolled.includes(courseId)) {
+        if (!Types.ObjectId.isValid(courseId)) {
+            return res.status(400).json({ success: false, message: "Invalid course ID." });
+        }
+
+        const courseObjectId = new Types.ObjectId(courseId);
+
+        if (user.enrolledCourses?.includes(courseObjectId)) {
             return res.status(400).json({
-              success: false,
-              message: "User is already enrolled in this course."
+                success: false,
+                message: "User is already enrolled in this course."
             });
-
         }
-        
+
+        user.enrolledCourses?.push(courseObjectId);
+        await user.save();
+
+        return res.status(200).json({
+            message: "Course purchased successfully",
+            success: true
+        });
+
     } catch (error) {
-        
+        return res.status(500).json({ success: false, message: "Error purchasing the course", error: error || error });
     }
-}
+};

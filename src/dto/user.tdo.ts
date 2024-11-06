@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { courseDTO } from "./course.dto";
 
 // complete later
@@ -5,11 +6,11 @@ export interface UserDTO {
     username: string;
     password: string;
     email?: string;
-    enrolledCourses?:courseDTO[];
-    name:string;
-    surname:string;
-    DoB?:string;
-    idNumber?:string;
+    enrolledCourses?: mongoose.Types.ObjectId[]; // Array of ObjectIds referencing Course
+    name: string;
+    surname: string;
+    DoB?: string;
+    idNumber?: string;
 }
 
 export interface SignupDTO {
