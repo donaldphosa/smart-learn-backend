@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import userRouter from './routes/user';
 import courseRouter from './routes/course';
 import videoRouter from './routes/video';
+import { MONGO_URI } from './config/db';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,8 +16,9 @@ declare global {
     }
 }
 
+
 const connectDb = () =>{
-    mongoose.connect('mongodb+srv://donaldbossd:%40DONALDp2017@smart-learn.jhwoc.mongodb.net/?retryWrites=true&w=majority&appName=smart-learn').then(()=>{
+    mongoose.connect(MONGO_URI).then(()=>{
         console.log("DB connected successfully");
     }).catch((err)=>{
         console.log("error connecting to db"); 

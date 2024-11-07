@@ -3,7 +3,6 @@ import { LoginDTO, SignupDTO, UpdateUserDTO, UserDTO } from "../dto/user.tdo";
 import UserModel from "../models/user";
 import { comparePasswords, generateSalt, hashPassword } from "../utility/passwordutility";
 import { generateToken } from "../utility/jwtUtil";
-import { log } from "console";
 import { Types } from 'mongoose';
 
 export const signup = async (req: Request, res: Response, next: NextFunction) => {

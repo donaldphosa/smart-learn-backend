@@ -3,66 +3,104 @@ import upload from "../middleware/multerVideoUpload";
 import { CourseVideo } from "../models/video";
 import course from "../models/course";
 import { Types } from "mongoose";
-import getVideoDuration from "../utility/calculateVideoDuration";
+
+// import getVideoDuration from "../utility/calculateVideoDuration";
 
 
-export const uploadVideo = [
+export const uploadVideo = async (req: Request, res: Response, next: NextFunction) => {
+  
+    const courseId = req.params.id;
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
 
-    upload.single('videoFile'), async (req: Request, res: Response, next: NextFunction) => {
-        const courseId = req.params.id;
-      
-        if (!req.file) {
-          return res.status(400).json({ success: false, message: 'No file uploaded' });
-        }
-      
-        try {
-          const duration  = await getVideoDuration(req.file.path);
+    try {
+      // const duration  = await getVideoDuration(req.file.path);
 
-          const newVideo = new CourseVideo({
+      const newVideo = new CourseVideo({
+        videoName: req.file.filename,
+        videoDescription: "string",
+        videoDuration: 789898,
+        videoUrl: req.file.path
+      });
 
-            videoName: req.file.filename,
-            videoDescription: "string",
-            videoDuration: duration,
-            videoUrl: req.file.path
-          });
-      
-          await newVideo.save();
-      
-          const uploadToCourse = await course.findById(courseId);
-          if (!uploadToCourse) {
-            return res.status(404).json({ success: false, message: 'Course not found' });
-          }
+      await newVideo.save();
 
-      
-         const vidId = new Types.ObjectId(newVideo._id as string)
-
-          uploadToCourse.courseVideos?.push(vidId);
-
-          await uploadToCourse.save();
-      
-          // Respond with success
-          return res.status(200).json({
-            success: true,
-            message: 'Video uploaded successfully',
-            video: newVideo
-          });
-        } catch (error) {
-          console.error(error);
-          return res.status(500).json({
-            success: false,
-            message: 'Error uploading video',
-            error: error
-          });
-        }
+      const uploadToCourse = await course.findById(courseId);
+      if (!uploadToCourse) {
+        return res.status(404).json({ success: false, message: 'Course not found' });
       }
 
-]
 
-export const deleteVideo = async  (req: Request, res:Response, next: NextFunction)=>{
+      const vidId = new Types.ObjectId(newVideo._id as string)
 
+      uploadToCourse.courseVideos?.push(vidId);
+
+      await uploadToCourse.save();
+
+      // Respond with success
+      return res.status(200).json({
+        success: true,
+        message: 'Video uploaded successfully',
+        video: newVideo
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error uploading video',
+        error: error
+      });
+    }
+  }
+
+
+export const deleteVideo = async (req: Request, res: Response, next: NextFunction) => {
+
+  try {
+    const videoId = req.params.id;
+
+    if (!videoId) {
+      return res.status(400).json({ message: "invalid video id", success: false });
+    }
+
+    const video = await CourseVideo.findByIdAndDelete(videoId);
+
+    await course.updateMany(
+      { courseVideos: videoId }, 
+      { $pull: { courseVideos: videoId } } 
+    );
+
+    if (!video) {
+      return res.status(400).json({ message: "could not delete video", success: false })
+    }
+
+    return res.status(200).json({ message: "video deleted successfully", success: true, video: video });
+
+  } catch (error) {
+    return res.status(500).json({ message: "error deleting video", success: false });
+  }
 }
 
-export const  getVideoById = async (req: Request, res:Response, next: NextFunction)=>{
+export const getVideoById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      
+      const videoId = req.params.id;
+      if (!videoId) {
+        return res.status(400).json({ message: "invalid video id", success: false });
+      }
+      
+      const video = await CourseVideo.findById(videoId);
 
+      if (!video) {
+        return res.status(400).json({ message: "could not find video", success: false })
+      }
+
+      return res.status(200).json({ message: "video found successfully", success: true, video: video });
+
+
+    } catch (error) {
+      return res.status(500).json({message:"video not found",success:false,error:error});
+    }
 }
 

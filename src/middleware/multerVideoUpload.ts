@@ -1,12 +1,20 @@
 import multer from 'multer';
+import { GridFsStorage } from 'multer-gridfs-storage';
 import path from 'path';
+import { MONGO_URI } from '../config/db';
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));  
+const storage = new GridFsStorage({
+  url: MONGO_URI,
+  file: (req: any, file: Express.Multer.File) => {
+    return new Promise((resolve, reject) => {
+      const filename = `${Date.now()}-${file.originalname}`;
+      const fileInfo = {
+        filename,
+        bucketName: 'uploads' // Collection name
+      };
+      resolve(console.log('i am not resolving')
+      );
+    });
   }
 });
 
