@@ -1,1 +1,1 @@
-export const MONGO_URI = 'mongodb+srv://donaldbossd:%40DONALDp2017@smart-learn.jhwoc.mongodb.net/?retryWrites=true&w=majority&appName=smart-learn';
+export const MONGO_URI = 'mongodb+srv://donaldbossd:%40DONALDp2017@smart-learn.jhwoc.mongodb.net/?retryWrites=true&w=majority&appName=smart-learn'; 

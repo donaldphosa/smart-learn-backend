@@ -4,6 +4,7 @@ import userRouter from './routes/user';
 import courseRouter from './routes/course';
 import videoRouter from './routes/video';
 import { MONGO_URI } from './config/db';
+import fileUpload from 'express-fileupload';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,7 +29,7 @@ connectDb();
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-
+app.use(fileUpload());
 app.use('/users',userRouter);
 app.use('/courses',courseRouter);
 app.use('/videos',videoRouter);
