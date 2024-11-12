@@ -86,7 +86,7 @@ export const uploadVideo = async (req: Request, res: Response, next: NextFunctio
 
     // Handle successful upload completion
     uploadStream.on('finish', () => {
-      console.log('File uploaded successfully');
+      log(uploadStream)
       res.status(200).json({ success: true, fileId: uploadStream.id });
     });
 

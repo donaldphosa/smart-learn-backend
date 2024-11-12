@@ -35,7 +35,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
 
         if (existingUser) {
             return res.status(500).json({ message: "user already exist", success: false })
-        }
+        } 
 
         const salt = await generateSalt();
 
