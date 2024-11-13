@@ -29,7 +29,7 @@ const connectDb = () =>{
 connectDb();
 
 const corsOptions: cors.CorsOptions = {
-    origin: '*', // or an array of allowed origins
+    origin: '*', 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 };

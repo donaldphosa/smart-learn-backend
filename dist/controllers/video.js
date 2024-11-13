@@ -12,49 +12,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getVideoById = exports.deleteVideo = exports.uploadVideo = void 0;
+exports.downloadVideo = exports.deleteVideo = exports.uploadVideo = void 0;
 const video_1 = require("../models/video");
-const course_1 = __importDefault(require("../models/course"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const mongodb_1 = require("mongodb");
 const db_1 = require("../config/db");
 const console_1 = require("console");
 const stream_1 = require("stream");
+const course_1 = __importDefault(require("../models/course"));
 const client = new mongodb_1.MongoClient(db_1.MONGO_URI);
 let gfs;
-// export const uploadVideo = async (req: Request, res: Response, next: NextFunction) => {
-//     const courseId = req.params.id;
-//     if (!req.file) {
-//       return res.status(400).json({ success: false, message: 'No file uploaded' });
-//     }
-//     try {
-//       const newVideo = new CourseVideo({
-//         videoName: req.file.filename,
-//         videoDescription: "string",
-//         videoDuration: 789898,
-//         videoUrl: req.file.path
-//       });
-//       await newVideo.save();
-//       const uploadToCourse = await course.findById(courseId);
-//       if (!uploadToCourse) {
-//         return res.status(404).json({ success: false, message: 'Course not found' });
-//       }
-//       const vidId = new Types.ObjectId(newVideo._id as string)
-//       uploadToCourse.courseVideos?.push(vidId);
-//       await uploadToCourse.save();
-//       return res.status(200).json({
-//         success: true,
-//         message: 'Video uploaded successfully',
-//         video: newVideo
-//       });
-//     } catch (error) {
-//       console.error(error);
-//       return res.status(500).json({
-//         success: false,
-//         message: 'Error uploading video',
-//         error: error
-//       });
-//     }
-//  }
 client.connect().then(() => {
     (0, console_1.log)('i am connected');
     const db = client.db('smart-learn');
@@ -62,26 +29,31 @@ client.connect().then(() => {
 });
 const uploadVideo = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const { description } = req.body;
+        const courseId = req.params.id;
         if (!req.files || !req.files.file) {
             return res.status(400).send('No file uploaded');
         }
-        // Cast file to UploadedFile type
         const file = req.files.file;
-        // Open an upload stream with GridFS, using file name and mimetype
         const uploadStream = gfs.openUploadStream(file.name, {
             contentType: file.mimetype,
         });
-        // Handle successful upload completion
-        uploadStream.on('finish', () => {
-            (0, console_1.log)(uploadStream);
-            res.status(200).json({ success: true, fileId: uploadStream.id });
-        });
-        // Handle errors
+        uploadStream.on('finish', () => __awaiter(void 0, void 0, void 0, function* () {
+            const video = new video_1.CourseVideo({
+                videoName: uploadStream.filename,
+                videoDescription: description,
+                videoId: uploadStream.id,
+            });
+            video.save();
+            const updatedCourse = yield course_1.default.findByIdAndUpdate(courseId, {
+                $push: { courseVideos: video._id }
+            }, { new: true });
+            res.status(200).json({ success: true, course: updatedCourse });
+        }));
         uploadStream.on('error', (err) => {
             console.error('Error uploading file:', err);
             res.status(500).json({ success: false, error: err.message });
         });
-        // Pipe the file data directly to the upload stream
         const fileDataStream = stream_1.Readable.from(file.data);
         fileDataStream.pipe(uploadStream);
     }
@@ -93,36 +65,40 @@ const uploadVideo = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
 exports.uploadVideo = uploadVideo;
 const deleteVideo = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const videoId = req.params.id;
-        if (!videoId) {
-            return res.status(400).json({ message: "invalid video id", success: false });
+        const fileId = req.params.id;
+        if (!mongoose_1.default.Types.ObjectId.isValid(fileId)) {
+            return res.status(400).json({ success: false, message: 'Invalid file ID' });
         }
-        const video = yield video_1.CourseVideo.findByIdAndDelete(videoId);
-        yield course_1.default.updateMany({ courseVideos: videoId }, { $pull: { courseVideos: videoId } });
-        if (!video) {
-            return res.status(400).json({ message: "could not delete video", success: false });
-        }
-        return res.status(200).json({ message: "video deleted successfully", success: true, video: video });
+        yield gfs.delete(new mongoose_1.default.Types.ObjectId(fileId));
+        res.status(200).json({ success: true, message: 'File deleted successfully' });
     }
     catch (error) {
-        return res.status(500).json({ message: "error deleting video", success: false });
+        console.error('Error in deleteVideo:', error);
+        res.status(500).json({ success: false, error: 'Server error during deletion' });
     }
 });
 exports.deleteVideo = deleteVideo;
-const getVideoById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const downloadVideo = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const videoId = req.params.id;
-        if (!videoId) {
-            return res.status(400).json({ message: "invalid video id", success: false });
+        const fileId = req.params.id;
+        if (!fileId) {
+            return res.status(400).json({ success: false, message: 'No file ID provided' });
         }
-        const video = yield video_1.CourseVideo.findById(videoId);
-        if (!video) {
-            return res.status(400).json({ message: "could not find video", success: false });
-        }
-        return res.status(200).json({ message: "video found successfully", success: true, video: video });
+        const objectId = new mongoose_1.default.Types.ObjectId(fileId);
+        const downloadStream = gfs.openDownloadStream(objectId);
+        downloadStream.on('data', (chunk) => {
+            res.write(chunk);
+        });
+        downloadStream.on('end', () => {
+            res.end();
+        });
+        downloadStream.on('error', (err) => {
+            res.status(500).json({ success: false, error: 'File not found or error in download' });
+        });
     }
     catch (error) {
-        return res.status(500).json({ message: "video not found", success: false, error: error });
+        console.error('Error in downloadVideo:', error);
+        res.status(500).json({ success: false, error: 'Server error during download' });
     }
 });
-exports.getVideoById = getVideoById;
+exports.downloadVideo = downloadVideo;

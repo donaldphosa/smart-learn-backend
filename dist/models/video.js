@@ -28,7 +28,6 @@ const mongoose_1 = __importStar(require("mongoose"));
 const courseVideoSchema = new mongoose_1.Schema({
     videoName: { type: String, required: true },
     videoDescription: { type: String, required: true },
-    videoDuration: { type: Number, required: true },
-    videoUrl: { type: String, required: true },
+    videoId: { type: String, required: true },
 });
 exports.CourseVideo = mongoose_1.default.model('CourseVideo', courseVideoSchema);
